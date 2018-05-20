@@ -1,0 +1,14 @@
+model/vc11/*.sdf
+model/vc11/*.suo
+model/vc11/*.opensdf
+model/vc11/Release
+model/vc11/Debug
+
+model/vc12/*.sdf
+model/vc12/*.suo
+model/vc12/*.opensdf
+model/vc12/Release
+model/vc12/Debug
+
+*.csv
+cinder/
