@@ -14,7 +14,7 @@
 #include "cinder/qtime/MovieWriter.h"
 #include "cinder/Utilities.h"
 
-#define SAVE_MOVIE
+//#define SAVE_MOVIE
 //#define SAVE_SS
 
 using namespace ci;
@@ -259,7 +259,7 @@ void VisualizationApp::update()
                         numeric_limits<float>::lowest(), numeric_limits<float>::lowest());
   glm::vec2 center(0.f,0.f);
   // prey
-  searchNeighbours(predator, prey);
+  
   for (Prey &p : prey)
   {
     if (!p.isDead)
@@ -267,7 +267,7 @@ void VisualizationApp::update()
       if (p.nnd != -1)
         sdNND += (p.nnd / AppSettings::preySize*2.f - avgNND)*(p.nnd / AppSettings::preySize*2.f - avgNND);
 
-      p.update(predator);
+      p.update(predator, prey);
 
       center += p.position;
       area.include(Vec2f(p.position.x, p.position.y));

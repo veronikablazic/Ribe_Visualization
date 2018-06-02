@@ -24,6 +24,9 @@ namespace AppSettings {
 	// 0 - predator non confusable, 1 - predator confusable, 2 - predator zheng
 	#define CONFUSABILITY 2
 
+	// 0 - no selfish prey escape, 1 - selfish prey escape
+	#define SELFISH_ESCAPE 0
+
 	//model
 	const int screenWidth = 1280;
 	const int screenHeight = 720;
@@ -36,14 +39,14 @@ namespace AppSettings {
 	// prey settings
 	const int noOfPreyAnimats = 0 + 1 * 100;
 	// NOTE: this is 1/2 BL - r of circle
-	const float preySize = 2.0f;
+	const float preySize = 1.0f;
 
 	const float maxPreyForce = 2.0f;
 	/*const float maxPreyVelocity = 8.0f;
 	const float minPreyVelocity = 4.0f;*/
 
-	const float maxPreyVelocity = preySize * 2.0f;
-	const float minPreyVelocity = preySize * 0.75f;
+	const float maxPreyVelocity = preySize * 8.0f;
+	const float minPreyVelocity = preySize * 4.0f;
 
 	const float separationSize = 10.0f;
 	const float alignmentSize = 50.0f;
@@ -67,15 +70,15 @@ namespace AppSettings {
 	const float cosPreyBlindThreshold = glm::cos(glm::radians(180.0f - preyBlindAngle / 2.0f));
 
 	// predator settings
-	const float predatorSize = 6.0f;
+	const float predatorSize = 3.0f;
 	const int handlingTime = 30;
 
 	const float maxPredatorForce = 2.5f;
 	/*const float maxPredatorVelocity = 12.0f;
 	const float minPredatorVelocity = 6.0f;*/
 
-	const float maxPredatorVelocity = predatorSize * 2.0f;
-	const float minPredatorVelocity = predatorSize * 0.75f;
+	const float maxPredatorVelocity = predatorSize * 4.0f;
+	const float minPredatorVelocity = predatorSize * 1.0f;
 
 	const float huntSize = 800.0f;
 	const float confusabilitySize = 50.0f;

@@ -149,67 +149,79 @@ void Prey::calculate(Predator const& predator, std::vector<Prey> &preyAnimats)
   neighbours.clear();
 }
 
-void Prey::update(Predator const& predator)
+void Prey::update(Predator const& predator, std::vector<Prey> &preyAnimats)
 {
 
-  long rC = 0;
-  float r = (std::max(risk,0.f) - predator.minPreyRisk) / (predator.maxPreyRisk - predator.minPreyRisk);
+	long rC = 0;
+	float r = (std::max(risk, 0.f) - predator.minPreyRisk) / (predator.maxPreyRisk - predator.minPreyRisk);
 
-  if (predator.target != -1) {
-    if (predator.target == id)
-      r = risk;
-    else
-      r = 0.f;
-  }
-  for (auto rL : AppSettings::riskLevels) {
-    if (r <= rL)
-      break;
-    rC++;
-  }
+	if (predator.target != -1) {
+		if (predator.target == id)
+			r = risk;
+		else
+			r = 0.f;
+	}
+	for (auto rL : AppSettings::riskLevels) {
+		if (r <= rL)
+			break;
+		rC++;
+	}
 
-  mColor = AppSettings::riskColor[rC];
+	mColor = AppSettings::riskColor[rC];
+	if (r > .8f) selfishEscape = true;
+	else selfishEscape = false;
 
-  // update speed and heading
-  glm::vec2 velocity = getVelocity();
+	// update speed and heading
+	glm::vec2 velocity = getVelocity();
 
-  if (PREY_ENERGY > 0) {
-	  if ((energy > 0) && (!isExhausted)) {
-		  velocity += acceleration;
-	  }
-	  else {
-		  isExhausted = true;
-		  speed = AppSettings::minPreyVelocity;
-		  velocity = getVelocity();
-	  }
-  }
-  else {
-	  velocity += acceleration;
-  }
+	if (PREY_ENERGY > 0) {
+		if ((energy > 0) && (!isExhausted)) {
+			velocity += acceleration;
+		}
+		else {
+			isExhausted = true;
+			speed = AppSettings::minPreyVelocity;
+			velocity = getVelocity();
+		}
+	}
+	else {
+		velocity += acceleration;
+	}
 
-  speed = .0f;
-  float speed2 = glm::length2(velocity);
-  if (speed2 > .0f)
-  {
-    speed = std::sqrt(speed2);
-    heading = velocity / speed;
-  }
+	speed = .0f;
+	float speed2 = glm::length2(velocity);
 
-  // limit speed
-  speed = glm::clamp(speed, AppSettings::minPreyVelocity, AppSettings::maxPreyVelocity);
+	if (!selfishEscape) {
+		if (speed2 > .0f) {
+			speed = std::sqrt(speed2);
+			heading = velocity / speed;
+		}
 
-  if (PREY_ENERGY == 1) {
-	  float oxygenConsumption = pow(62.9, (0.21 * (speed / AppSettings::preySize))) / 36; //mgO2 / kg h
-	  oxygenConsumption = oxygenConsumption / 360;
+		// limit speed
+		speed = glm::clamp(speed, AppSettings::minPreyVelocity, AppSettings::maxPreyVelocity);
+	}
+	else {
+		// selfish escape
+		heading = glm::vec2(predator.heading.y, -predator.heading.x);
+	}
 
-	  if (speed > AppSettings::minPreyVelocity) {
-		  energy -= oxygenConsumption;
-		  if (energy > 1) energy = 1.0f;
-	  }
-	  else {
-		  energy += regenerationGain;
-		  if (energy > 1) energy = 1.0f;
-	  }
-  }
+	speed = glm::clamp(speed, AppSettings::minPreyVelocity, AppSettings::maxPreyVelocity);
+
+	if (PREY_ENERGY == 1) {
+		
+		float oxygenConsumption = pow(62.9, (0.21 * (speed / AppSettings::preySize))) / 36; //mgO2 / kg h
+		oxygenConsumption = oxygenConsumption / 360;
+
+		if (speed > AppSettings::minPreyVelocity) {
+			energy -= oxygenConsumption;
+			if (energy > 1) energy = 1.0f;
+		}
+		else {
+			energy += regenerationGain;
+			if (energy > 1) energy = 1.0f;
+		}
+	}
+
   // if we're using Zheng's method
   else if (PREY_ENERGY == 2) {
 
@@ -217,9 +229,12 @@ void Prey::update(Predator const& predator)
 	  angle_t = atan(heading.y / heading.x);
 
 	  ncoll = 0;
-	  int n = neighbours.size();
+	  int n = preyAnimats.size();
 	  for (int i = 0; i < n; i++) {
-		  if (neighbours[i].dist < AppSettings::preySize) ncoll += 0.1;
+		  if (id != preyAnimats[i].id && !preyAnimats[i].isDead){
+			  float distance = sqrt(pow(position.x - preyAnimats[i].position.x, 2) + pow(position.y - preyAnimats[i].position.y, 2));
+			  if (distance < AppSettings::preySize) ncoll += 1;
+		  }  
 	  }
 	  
 	  float average_speed = (AppSettings::minPreyVelocity + AppSettings::maxPreyVelocity) / 2;

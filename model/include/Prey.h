@@ -23,7 +23,7 @@ class Prey
   public:
     Prey(int animatID);
     void calculate(Predator const& predator, std::vector<Prey> &preyAnimats);
-    void update(Predator const& predator);
+	void update(Predator const& predator, std::vector<Prey> &preyAnimats);
     void draw();
     void drawTarget(Predator const& predator, bool disperse = false);
     void drawDomainOfDanger();
@@ -54,5 +54,7 @@ class Prey
 	float prevAngle_t;
 	float angle_t;
 	double ncoll = 0;
+
+	bool selfishEscape = false;
 
 };
