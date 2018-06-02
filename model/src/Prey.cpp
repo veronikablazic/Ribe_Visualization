@@ -229,8 +229,7 @@ void Prey::update(Predator const& predator, std::vector<Prey> &preyAnimats)
 	  angle_t = atan(heading.y / heading.x);
 
 	  ncoll = 0;
-	  int n = preyAnimats.size();
-	  for (int i = 0; i < n; i++) {
+	  for (int i = 0; i < preyAnimats.size(); i++) {
 		  if (id != preyAnimats[i].id && !preyAnimats[i].isDead){
 			  float distance = sqrt(pow(position.x - preyAnimats[i].position.x, 2) + pow(position.y - preyAnimats[i].position.y, 2));
 			  if (distance < AppSettings::preySize) ncoll += 1;
@@ -259,6 +258,21 @@ void Prey::update(Predator const& predator, std::vector<Prey> &preyAnimats)
   }
 
   position += getVelocity();
+
+  if (HYDRO == 1) {
+	  glm::vec2 Ui = glm::vec2(.0f, .0f);
+	  for (int i = 0; i < preyAnimats.size(); i++) {
+		  if (id != preyAnimats[i].id && !preyAnimats[i].isDead){
+			  glm::vec2 e_jp = glm::normalize(glm::vec2(position.x - preyAnimats[i].position.x, position.y - preyAnimats[i].position.y));
+			  glm::vec2 e_j0 = glm::normalize(glm::vec2(e_jp.y, -e_jp.x));
+			  float p = sqrt(pow(position.x - preyAnimats[i].position.x, 2) + pow(position.y - preyAnimats[i].position.y, 2));
+			  float theta = atan2(heading.y, heading.x) - atan2(preyAnimats[i].heading.y, preyAnimats[i].heading.x);
+			  glm::vec2 u_ji = (float)pow(10, -2) * (e_j0 * sin(theta) + e_jp * cos(theta)) / (float)(std::_Pi * pow(p, 2));
+			  Ui += u_ji;
+		  }
+	  }
+	  position += Ui;
+  }
 
   do
     h.push_back(Vec2f(position.x, position.y) +Vec2f(heading.x, heading.y) / 2.f);

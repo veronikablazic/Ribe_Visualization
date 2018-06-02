@@ -25,7 +25,10 @@ namespace AppSettings {
 	#define CONFUSABILITY 2
 
 	// 0 - no selfish prey escape, 1 - selfish prey escape
-	#define SELFISH_ESCAPE 0
+	#define SELFISH_ESCAPE 1
+
+	// 0 - no hydrodinamics, 1 - hydrodinamics
+	#define HYDRO 1
 
 	//model
 	const int screenWidth = 1280;
