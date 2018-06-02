@@ -106,7 +106,7 @@ Predator::Predator(int animatID, float nW, float pW, float cW)
   burstSpeed = AppSettings::predatorSize * 3.75;
 
   speed = randomFloat(sustainedSpeed, prolongedSpeed);
-  attackZoneAngle = std::_Pi / 6;
+  attackZoneAngle = (std::_Pi / 6);
 
   distFromTarget = 1000000;
 
@@ -268,6 +268,7 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 						glm::vec2 p_huntVector = glm::normalize(p.position - position);
 						// angle between current target direction and animat p
 						float p_alpha = std::acos((p_huntVector.x * huntVector.x + p_huntVector.y * huntVector.y));
+						if (p_alpha < 0) p_alpha += 2 * std::_Pi;
 						if (p_alpha < attackZoneAngle / 2) {
 							float p_dist = glm::distance(p.position, position) - AppSettings::preySize - AppSettings::predatorSize;
 							if (p_dist < min_distance) min_distance = p_dist;
