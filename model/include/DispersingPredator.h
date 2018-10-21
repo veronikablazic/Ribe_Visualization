@@ -51,6 +51,53 @@ class Predator
     bool lockOn;
     float lockOnDistance;
     float lockOnRadius;
+
+
+	// new energy variables from here on
+
+	float distFromTarget;
+	float catchDistance;
+
+	float bodyLength;
+	float regenerationGain;				// weight that is added to energyTimer at cruisingSpeed
+	float energy;
+	float angle_t;						// moving direction arctan(vy/vx)
+	float prevAngle_t;					// previous moving direction arctan(vy/vx)
+	float Ncoll;						// number of collisions
+	float rFish;						// distance to other fish
+	float averageSpeed;
+	int   averageCounter;
+
+	float iterationsToGetRecovered;		// how many frames to get fully recovered
+	float sustainedSpeed;				// sustained speed, at this speed fish can swim infinitely and can regenerate 
+	float prolongedSpeed;				// a bit faster than sustained, fish will eventualy get fatigue
+	float burstSpeed;					// burst speed is maximum swimming speed, fish can't swim long time at this speed
+	float oxygenConsumption;			// average oxygen consumption
+	float predatorDistnce;				// predator distance when fish stars to accelerating
+	bool  isPeripheral;					// peripheral fish consume 10% more oxygen
+	bool  isExhausted;					// if fish was exhausted it has to rest 
+	float perifcount;
+
+	double burstSpeedStart;				// when fish started to swim at burst speed
+
+	//prey selection parameters
+	double angleAttack;
+	double depthAttackZone;
+	double timePeriod;					// in seconds
+	double prevPeriod;
+
+	float attackZoneAngle;
+
+	//speed evolution parameters
+	float distanceForAcceleration;		// distance from prey to which predator is using its minimum speed
+	float velocityMultiplier;			// full speed means more energy expense, why use full speed if not necessary, used instead of force multiplier
+	double attackPeriod;				// max attack period in seconds
+	double currentAttackTime;
+	bool isNearCatch = false;
+
+	std::vector<float> predator_speed;
+	//std::ofstream predatorSpeeds;
+
 };
 
 #endif

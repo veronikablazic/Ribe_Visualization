@@ -53,6 +53,11 @@ class VisualizationApp : public AppNative
     gl::TextureFontRef  mFont,mFontB;
 
     params::InterfaceGlRef params;
+	int fileNumber = 3;
+	std::ofstream predatorSpeeds = std::ofstream("Predator" + std::to_string(fileNumber) + ".csv");
+	std::ofstream preySpeeds = std::ofstream("Prey" + std::to_string(fileNumber) + ".csv");
+
+
 #ifdef SAVE_MOVIE
     qtime::MovieWriterRef  mMovieWriter;
 #endif
@@ -159,14 +164,14 @@ void VisualizationApp::setup()
   srcArea = Area(Vec2i(-20000, -20000), Vec2i(20000, 20000));
   destRect = Rectf(-10000.0f, -10000.0f, 10000.0f, 10000.0f);
 
-#ifdef SAVE_MOVIE
+/*#ifdef SAVE_MOVIE
   fs::path path = getSaveFilePath();
   qtime::MovieWriter::Format format;
 
   if (qtime::MovieWriter::getUserCompressionSettings(&format, loadImage(loadResource(RES_PREVIEW_IMAGE, "PNG")))) {
     mMovieWriter = qtime::MovieWriter::create(path, AppSettings::screenWidth, AppSettings::screenHeight, format);
   }
-#endif
+#endif*/
 }
 
 // search pairwise neighbours
@@ -313,6 +318,27 @@ void VisualizationApp::update()
 
 void VisualizationApp::draw()
 {
+
+	predatorSpeeds << predator.speed << " " << predator.energy;
+	predatorSpeeds << std::endl;
+
+	float preySpeed = 0;
+	float preyEnergy = 0;
+	int countAlive = 0;
+
+	for (Prey &p : prey) {
+		if (!p.isDead) {
+			preySpeed += p.speed;
+			preyEnergy += p.energy;
+			countAlive++;
+		}	
+	}
+	preySpeed = preySpeed / countAlive;
+	preyEnergy = preyEnergy / countAlive;
+	preySpeeds << preySpeed << " " << preyEnergy;
+	preySpeeds << std::endl;
+
+
   gl::setMatrices(cam);
 
   if (step <= AppSettings::noOfSteps)

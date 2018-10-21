@@ -10,7 +10,7 @@ namespace AppSettings {
 	#define BASICNEAREST 3
 	#define BASICCENTRAL 4
 	#define BASICPERIPHERAL 5
-	#define PREDATOR BASIC
+	#define PREDATOR BASICNEAREST
 
 	#define DEFAULT 0
 	#define DELAYEDRESPONSE 1
@@ -18,23 +18,26 @@ namespace AppSettings {
 	#define PREY DEFAULT
 
 	// 0 - no energy, 1 - oxygen consumption, 2 - zheng
-	#define ENERGY 2
-	#define PREY_ENERGY 2
+	#define ENERGY 1
+	#define PREY_ENERGY 1
 
 	// 0 - predator non confusable, 1 - predator confusable, 2 - predator zheng
-	#define CONFUSABILITY 2
+	#define CONFUSABILITY 0
 
 	// 0 - no selfish prey escape, 1 - selfish prey escape
-	#define SELFISH_ESCAPE 1
+	#define SELFISH_ESCAPE 0
 
 	// 0 - no hydrodinamics, 1 - hydrodinamics
-	#define HYDRO 1
+	#define HYDRO 0
+
+	// 0 - no evolution parameters in account, 1 - evolution parameters present
+	#define EVOL_PARAMETERS 1
 
 	//model
 	const int screenWidth = 1280;
 	const int screenHeight = 720;
 
-	const int noOfSteps = 2000;
+	const int noOfSteps = 600;
 
 	const float worldSize = 100;
 	const glm::vec2 worldCentre = glm::vec2((float)screenWidth / 2, (float)screenHeight / 2);

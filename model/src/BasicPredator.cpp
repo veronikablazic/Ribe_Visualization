@@ -107,8 +107,17 @@ Predator::Predator(int animatID, float nW, float pW, float cW)
 
   speed = randomFloat(sustainedSpeed, prolongedSpeed);
   attackZoneAngle = (std::_Pi / 6);
+  angle_t = 0;
 
   distFromTarget = 1000000;
+
+  distanceForAcceleration = 152.0f;
+  velocityMultiplier = 1.8f;
+  attackPeriod = 201;
+  currentAttackTime = 0;
+
+  predator_speed = {};
+  //predatorSpeeds = std::ofstream("Predator");
 
 }
 
@@ -215,6 +224,23 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 	if (!handling) {
 		// neighbour data
 		glm::vec2 huntVector = glm::vec2(.0f, .0f);
+		currentAttackTime++;
+
+		if (EVOL_PARAMETERS == 1) {
+			if (currentAttackTime > attackPeriod) {
+				target = -1;
+				handling = true;
+				currentAttackTime = 0;
+			}
+
+			if ((target != -1) && (!preyAnimats[target].isDead)) {
+				Prey& targetPrey = preyAnimats[target];
+				float distFromTarget = glm::distance(targetPrey.position, position) - AppSettings::preySize - AppSettings::predatorSize;
+
+				if (distFromTarget < distanceForAcceleration) isNearCatch = true;
+				else isNearCatch = false;
+			}
+		}
 
 		// if has target and target no dead
 		if ((target != -1) && (!preyAnimats[target].isDead)) {
@@ -260,6 +286,7 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 				huntVector = glm::normalize(preyAnimats[target].position - position);
 				std::vector<int> targetsInAttackZone;
 				std::vector<float> targetsInAttackZoneDistance;
+				float p_dist = 0.0f;
 
 				int index = 0;
 				float min_distance = 100000.0f;
@@ -270,7 +297,8 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 						float p_alpha = std::acos((p_huntVector.x * huntVector.x + p_huntVector.y * huntVector.y));
 						if (p_alpha < 0) p_alpha += 2 * std::_Pi;
 						if (p_alpha < attackZoneAngle / 2) {
-							float p_dist = glm::distance(p.position, position) - AppSettings::preySize - AppSettings::predatorSize;
+							// finding the nearest fish in the attack zone
+							p_dist = glm::distance(p.position, position) - AppSettings::preySize - AppSettings::predatorSize;
 							if (p_dist < min_distance) min_distance = p_dist;
 							targetsInAttackZone.push_back(index);
 							targetsInAttackZoneDistance.push_back(p_dist);
@@ -284,7 +312,7 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 				if (n > 0) {
 					for (int i = 0; i < n; i++){
 						// izberemo samo animate, ki so znotraj tega polja
-						if ((min_distance + 2.0f) < targetsInAttackZoneDistance[i]) {
+						if ((min_distance + 2.0f) > targetsInAttackZoneDistance[i]) {
 							targetsInAttackZone2.push_back(targetsInAttackZone[i]);
 						}
 					}
@@ -304,7 +332,9 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 		// normalize and multiply with weight
 		if (target != -1) {
 		  huntVector = glm::normalize(preyAnimats[target].position - position);
-		  if(!isExhausted) acceleration = huntVector * AppSettings::maxPredatorForce;
+		  if (!isExhausted) {
+			  acceleration = huntVector * AppSettings::maxPredatorForce;
+		  }
 		  // still changes direction to stay within reach
 		  else acceleration = huntVector * 0.08f;
 		}
@@ -333,11 +363,15 @@ void Predator::update() {
 			speed = AppSettings::minPredatorVelocity; // minimum speed
 			velocity = getVelocity();
 		}
+
+		else if (!isNearCatch && EVOL_PARAMETERS == 1) {
+			speed = AppSettings::minPredatorVelocity * velocityMultiplier;
+			velocity = getVelocity();
+		}
 	}
 	
 	velocity += acceleration;
 	
-
 	speed = .0f;
 	float speed2 = glm::length2(velocity);
 	if (speed2 > .0f)
@@ -354,8 +388,9 @@ void Predator::update() {
 		oxygenConsumption = pow(62.9, (0.21 * (speed / bodyLength))) / 36; //mgO2 / kg h
 		oxygenConsumption = oxygenConsumption / 360;
 
-		if (speed > AppSettings::minPredatorVelocity) {
+		if (speed > AppSettings::minPredatorVelocity + 0.1f) {
 			energy -= oxygenConsumption;
+			if (energy < 0) energy = 0;
 		}
 		else {
 			energy += regenerationGain;
@@ -369,7 +404,7 @@ void Predator::update() {
 		float average_speed = (AppSettings::minPredatorVelocity + AppSettings::maxPredatorVelocity) / 2;
 		float energyChange = 0.001f * (1 / average_speed) * (AppSettings::minPredatorVelocity - speed) - 0.002f * (1 / pow(pi, 2)) * pow((angle_t - prevAngle_t), 2);
 
-		if (speed > AppSettings::minPredatorVelocity) {
+		if (speed > AppSettings::minPredatorVelocity + 0.1f) {
 			energy += energyChange;
 		}
 		else {
@@ -381,8 +416,10 @@ void Predator::update() {
 	if (isExhausted && (energy >= 0.5)) {
 		isExhausted = false;
 	}
-	
+
 	position += getVelocity();
+	predator_speed.push_back(speed);
+
 
 	do
 		h.push_back(Vec2f(position.x, position.y) + Vec2f(heading.x, heading.y) / 2.f);

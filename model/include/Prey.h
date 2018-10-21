@@ -56,5 +56,6 @@ class Prey
 	double ncoll = 0;
 
 	bool selfishEscape = false;
+	glm::vec2 Ui = glm::vec2(.0f, .0f);
 
 };

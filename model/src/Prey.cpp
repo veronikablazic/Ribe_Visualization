@@ -26,6 +26,7 @@ Prey::Prey(int animatID)
 
 	nnd = std::numeric_limits<float>::max();
 	energy = 1;
+	angle_t = 0;
 }
 
 bool closer(const neighbour_info &ni, const neighbour_info &nj) 
@@ -133,9 +134,9 @@ void Prey::calculate(Predator const& predator, std::vector<Prey> &preyAnimats)
   // calculate drives
   if (escapeCount > 0)
     acceleration += (escapeVector / (float)escapeCount) * AppSettings::escapeWeight;
-  if (separationCount > 0)
+  if (separationCount > 0 && !selfishEscape)
     acceleration += (separationVector / (float)separationCount) * AppSettings::separationWeight;
-  if (alignmentCount > 0)
+  if (alignmentCount > 0 && !selfishEscape)
     acceleration += ((alignmentVector / (float)alignmentCount) - getVelocity()) * AppSettings::alignmentWeight;
   if (cohesionCount > 0) 
     acceleration += ((cohesionVector / (float)cohesionCount)) * AppSettings::cohesionWeight;
@@ -168,8 +169,12 @@ void Prey::update(Predator const& predator, std::vector<Prey> &preyAnimats)
 	}
 
 	mColor = AppSettings::riskColor[rC];
-	if (r > .8f) selfishEscape = true;
-	else selfishEscape = false;
+	if (SELFISH_ESCAPE == 1 && predator.target == id) {
+		float dist = sqrt(pow(position.x - predator.position.x, 2) + pow(position.y - predator.position.y, 2));
+		if (dist < 100) selfishEscape = true;
+		else selfishEscape = false;
+	}
+	
 
 	// update speed and heading
 	glm::vec2 velocity = getVelocity();
@@ -209,10 +214,10 @@ void Prey::update(Predator const& predator, std::vector<Prey> &preyAnimats)
 
 	if (PREY_ENERGY == 1) {
 		
-		float oxygenConsumption = pow(62.9, (0.21 * (speed / AppSettings::preySize))) / 36; //mgO2 / kg h
+		float oxygenConsumption = pow(62.9, (0.21 * ((speed / 1.5) / AppSettings::preySize))) / 36; //mgO2 / kg h
 		oxygenConsumption = oxygenConsumption / 360;
 
-		if (speed > AppSettings::minPreyVelocity) {
+		if (speed - glm::length2(Ui) > AppSettings::minPreyVelocity) {
 			energy -= oxygenConsumption;
 			if (energy > 1) energy = 1.0f;
 		}
@@ -239,12 +244,10 @@ void Prey::update(Predator const& predator, std::vector<Prey> &preyAnimats)
 	  float average_speed = (AppSettings::minPreyVelocity + AppSettings::maxPreyVelocity) / 2;
 	  float energyChange = 0.001f * (1 / average_speed) * (AppSettings::minPreyVelocity - speed) 
 		  - 0.002f * (1 / pow(std::_Pi, 2)) * pow((angle_t - prevAngle_t), 2)
-		  - 0.002f * 1 * ncoll * std::exp(ncoll / 0.2);
-	  if (std::abs(energyChange) > 0.9) energyChange = 0.0f;
+		  - 0.002f * 1 * ncoll * std::exp(ncoll / 2);
 
-	  if (speed > AppSettings::minPreyVelocity) {
+	  if (speed - glm::length2(Ui) > AppSettings::minPreyVelocity) {
 		  energy += energyChange;
-		  if (energy > 1) energy = 1.0f;
 	  }
 	  else {
 		  energy += regenerationGain;
@@ -260,18 +263,29 @@ void Prey::update(Predator const& predator, std::vector<Prey> &preyAnimats)
   position += getVelocity();
 
   if (HYDRO == 1) {
-	  glm::vec2 Ui = glm::vec2(.0f, .0f);
+	  //glm::vec2 Ui = glm::vec2(.0f, .0f);
+	  Ui = glm::vec2(.0f, .0f);
 	  for (int i = 0; i < preyAnimats.size(); i++) {
 		  if (id != preyAnimats[i].id && !preyAnimats[i].isDead){
 			  glm::vec2 e_jp = glm::normalize(glm::vec2(position.x - preyAnimats[i].position.x, position.y - preyAnimats[i].position.y));
 			  glm::vec2 e_j0 = glm::normalize(glm::vec2(e_jp.y, -e_jp.x));
 			  float p = sqrt(pow(position.x - preyAnimats[i].position.x, 2) + pow(position.y - preyAnimats[i].position.y, 2));
 			  float theta = atan2(heading.y, heading.x) - atan2(preyAnimats[i].heading.y, preyAnimats[i].heading.x);
-			  glm::vec2 u_ji = (float)pow(10, -2) * (e_j0 * sin(theta) + e_jp * cos(theta)) / (float)(std::_Pi * pow(p, 2));
-			  Ui += u_ji;
+
+			  // polar
+			  glm::vec2 e_jp_polar = glm::vec2(1, atan(e_jp.y / e_jp.x));
+			  glm::vec2 e_j0_polar = glm::vec2(1, atan(e_j0.y / e_j0.x));
+				
+			  //glm::vec2 u_ji = (float)pow(10, -2) * (e_j0 * sin(theta) + e_jp * cos(theta)) / (float)(std::_Pi * pow(p, 2));
+			  glm::vec2 u_ji_polar = (float)pow(10, -2) * (e_j0_polar * sin(theta) + e_jp_polar * cos(theta)) / (float)(std::_Pi * pow(p, 2));
+			  //Ui += u_ji;
+			  Ui += u_ji_polar;
 		  }
 	  }
 	  position += Ui;
+	  float a = glm::length2(Ui);
+	  float b = a;
+
   }
 
   do

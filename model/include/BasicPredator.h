@@ -79,7 +79,7 @@ class Predator
 	bool  isExhausted;					// if fish was exhausted it has to rest 
 	float perifcount;
 
-	double burstSpeedStart;				//when fish started to swim at burst speed
+	double burstSpeedStart;				// when fish started to swim at burst speed
 
 	//prey selection parameters
 	double angleAttack;
@@ -88,6 +88,17 @@ class Predator
 	double prevPeriod;
 
 	float attackZoneAngle;
+
+	//speed evolution parameters
+	float distanceForAcceleration;		// distance from prey to which predator is using its minimum speed
+	float velocityMultiplier;			// full speed means more energy expense, why use full speed if not necessary, used instead of force multiplier
+	double attackPeriod;				// max attack period in seconds
+	double currentAttackTime;
+	bool isNearCatch = false;
+
+	std::vector<float> predator_speed;
+	//std::ofstream predatorSpeeds;
+
 };
 
 #endif
