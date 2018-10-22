@@ -28,10 +28,10 @@ namespace AppSettings {
 	#define SELFISH_ESCAPE 0
 
 	// 0 - no hydrodinamics, 1 - hydrodinamics
-	#define HYDRO 0
+	#define HYDRO 1
 
 	// 0 - no evolution parameters in account, 1 - evolution parameters present
-	#define EVOL_PARAMETERS 1
+	#define EVOL_PARAMETERS 0
 
 	//model
 	const int screenWidth = 1280;
