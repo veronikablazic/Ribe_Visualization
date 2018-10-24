@@ -15,7 +15,7 @@ class Predator
     Predator(int animatID, float parentLockOnDistance, float parentlockOnRadius);
     float calculatePreyRisk(Prey& prey, std::vector<Prey>& preyAnimats) const;
     void calculate(std::vector<Prey>& preyAnimats);
-    void update();
+	void update(std::vector<Prey>& preyAnimats);
     void reset();
     void draw();
     bool isOnFrontSideOfSchool(Prey const& prey) const;

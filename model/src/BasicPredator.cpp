@@ -312,7 +312,7 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 				if (n > 0) {
 					for (int i = 0; i < n; i++){
 						// izberemo samo animate, ki so znotraj tega polja
-						if ((min_distance + 2.0f) > targetsInAttackZoneDistance[i]) {
+						if ((min_distance + 50.0f) > targetsInAttackZoneDistance[i]) {
 							targetsInAttackZone2.push_back(targetsInAttackZone[i]);
 						}
 					}
@@ -349,7 +349,7 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 	}
 }
 
-void Predator::update() {
+void Predator::update(std::vector<Prey>& preyAnimats) {
 
 	// update speed and heading
 	glm::vec2 velocity = getVelocity();
@@ -403,6 +403,17 @@ void Predator::update() {
 		angle_t = atan(heading.y / heading.x);
 		float average_speed = (AppSettings::minPredatorVelocity + AppSettings::maxPredatorVelocity) / 2;
 		float energyChange = 0.001f * (1 / average_speed) * (AppSettings::minPredatorVelocity - speed) - 0.002f * (1 / pow(pi, 2)) * pow((angle_t - prevAngle_t), 2);
+
+		int ncoll = 0;
+		for (int i = 0; i < preyAnimats.size(); i++) {
+			if (!preyAnimats[i].isDead){
+				float distance = glm::distance(position, preyAnimats[i].position);
+				if (distance < AppSettings::catchDistance) ncoll += 1;
+			}
+		}
+
+		float predColl = 0.002f * 1 * ncoll * std::exp(ncoll / 2);
+		energyChange -= predColl;
 
 		if (speed > AppSettings::minPredatorVelocity + 0.1f) {
 			energy += energyChange;

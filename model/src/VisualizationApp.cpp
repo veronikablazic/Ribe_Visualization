@@ -285,7 +285,7 @@ void VisualizationApp::update()
   // predator
   if (AppSettings::usePredator)
   {
-    predator.update();
+    predator.update(prey);
     area.include(Vec2f(predator.position.x, predator.position.y));
   }
 

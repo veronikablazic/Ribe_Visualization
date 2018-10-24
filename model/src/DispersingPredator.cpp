@@ -329,7 +329,7 @@ void Predator::calculate(std::vector<Prey>& preyAnimats)
 		  if (n > 0) {
 			  for (int i = 0; i < n; i++){
 				  // izberemo samo animate, ki so znotraj tega polja
-				  if ((min_distance + 2.0f) > targetsInAttackZoneDistance[i]) {
+				  if ((min_distance + 50.0f) > targetsInAttackZoneDistance[i]) {
 					  targetsInAttackZone2.push_back(targetsInAttackZone[i]);
 				  }
 			  }
@@ -459,7 +459,7 @@ void Predator::calculate(std::vector<Prey>& preyAnimats)
   }
 }
 
-void Predator::update()
+void Predator::update(std::vector<Prey>& preyAnimats)
 {
   // update speed and heading
   glm::vec2 velocity = getVelocity();
