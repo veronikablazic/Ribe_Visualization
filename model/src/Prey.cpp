@@ -27,6 +27,8 @@ Prey::Prey(int animatID)
 	nnd = std::numeric_limits<float>::max();
 	energy = 1;
 	angle_t = 0;
+
+	selfish = true;
 }
 
 bool closer(const neighbour_info &ni, const neighbour_info &nj) 
@@ -171,7 +173,14 @@ void Prey::update(Predator const& predator, std::vector<Prey> &preyAnimats)
 	mColor = AppSettings::riskColor[rC];
 	if (SELFISH_ESCAPE == 1 && predator.target == id) {
 		float dist = sqrt(pow(position.x - predator.position.x, 2) + pow(position.y - predator.position.y, 2));
-		if (dist < 100) selfishEscape = true;
+		float random = randomFloat(.0f, 1.0f);
+		if (dist < 50) {
+			if (selfish){
+				selfish = false;
+				float random = randomFloat(.0f, 1.0f);
+				if (random < 0.2f) selfishEscape = true;
+			}
+		}
 		else selfishEscape = false;
 	}
 	

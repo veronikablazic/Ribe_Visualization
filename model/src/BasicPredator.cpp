@@ -207,7 +207,7 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 			maxPreyRisk = std::max(maxPreyRisk, p.risk);
 		}
 
-		if (CONFUSABILITY == 1) {
+		if (CONFUSABILITY == 1 || CONFUSABILITY == 3) {
 			// gleda razdaljo od predatorja do rib, ce je manjsa od confusability siza, se poveca st. confusorjev
 			if (!p.isDead) {
 				// what's correct now (confusors in target prey's or predator's confusability ZONE????)
@@ -253,7 +253,7 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 			// catch attempt
 			if (distFromTarget < AppSettings::catchDistance) {
 			
-				if (CONFUSABILITY == 1) {
+				if (CONFUSABILITY == 1 || CONFUSABILITY == 3) {
 					float random = randomFloat(.0f, 1.0f);
 					// not confused
 					if (random < 1.f - confusability) {
@@ -281,7 +281,7 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 				currentTactic = selectTactic();
 			}
 			// zheng confusability
-			else if (CONFUSABILITY == 2) {
+			else if (CONFUSABILITY == 2 || CONFUSABILITY == 3) {
 
 				huntVector = glm::normalize(preyAnimats[target].position - position);
 				std::vector<int> targetsInAttackZone;
@@ -290,11 +290,22 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 
 				int index = 0;
 				float min_distance = 100000.0f;
+				glm::vec2 p_huntVector;
+				float p_cos_alpha;
+
 				for (Prey p : preyAnimats) {
 					if (!p.isDead) {
-						glm::vec2 p_huntVector = glm::normalize(p.position - position);
+						p_huntVector = glm::normalize(p.position - position);
+
+						p_cos_alpha = glm::dot(p_huntVector, huntVector);
+						if (p_cos_alpha > cos(attackZoneAngle / 2.f)) {
+							p_dist = glm::distance(p.position, position) - AppSettings::preySize - AppSettings::predatorSize;
+							if (p_dist < min_distance) min_distance = p_dist;
+							targetsInAttackZone.push_back(index);
+							targetsInAttackZoneDistance.push_back(p_dist);
+						}
 						// angle between current target direction and animat p
-						float p_alpha = std::acos((p_huntVector.x * huntVector.x + p_huntVector.y * huntVector.y));
+						/*float p_alpha = std::acos((p_huntVector.x * huntVector.x + p_huntVector.y * huntVector.y));
 						if (p_alpha < 0) p_alpha += 2 * std::_Pi;
 						if (p_alpha < attackZoneAngle / 2) {
 							// finding the nearest fish in the attack zone
@@ -302,7 +313,7 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 							if (p_dist < min_distance) min_distance = p_dist;
 							targetsInAttackZone.push_back(index);
 							targetsInAttackZoneDistance.push_back(p_dist);
-						}
+						}*/
 					}
 					index++;
 				}
@@ -312,7 +323,7 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 				if (n > 0) {
 					for (int i = 0; i < n; i++){
 						// izberemo samo animate, ki so znotraj tega polja
-						if ((min_distance + 50.0f) > targetsInAttackZoneDistance[i]) {
+						if ((min_distance + 10.0f) > targetsInAttackZoneDistance[i]) {
 							targetsInAttackZone2.push_back(targetsInAttackZone[i]);
 						}
 					}
@@ -320,7 +331,9 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 				else target = -1;
 
 				n = targetsInAttackZone2.size();
-				if(n > 0) target = targetsInAttackZone2[std::rand() % (n)];
+				if (n > 0) {
+					target = targetsInAttackZone2[std::rand() % (n)];
+				}
 			}
 		}
 

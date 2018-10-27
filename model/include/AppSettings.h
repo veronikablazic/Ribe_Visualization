@@ -10,7 +10,7 @@ namespace AppSettings {
 	#define BASICNEAREST 3
 	#define BASICCENTRAL 4
 	#define BASICPERIPHERAL 5
-	#define PREDATOR DISPERSING
+	#define PREDATOR BASICNEAREST
 
 	#define DEFAULT 0
 	#define DELAYEDRESPONSE 1
@@ -21,7 +21,7 @@ namespace AppSettings {
 	#define ENERGY 2
 	#define PREY_ENERGY 2
 
-	// 0 - predator non confusable, 1 - predator confusable, 2 - predator zheng
+	// 0 - predator non confusable, 1 - predator confusable, 2 - predator zheng, 3 - both
 	#define CONFUSABILITY 2
 
 	// 0 - no selfish prey escape, 1 - selfish prey escape
