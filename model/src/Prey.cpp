@@ -241,7 +241,7 @@ void Prey::update(Predator const& predator, std::vector<Prey> &preyAnimats)
   else if (PREY_ENERGY == 2) {
 
 	  prevAngle_t = angle_t;
-	  angle_t = atan(heading.y / heading.x);
+	  angle_t = atan2(heading.y, heading.x);
 
 	  ncoll = 0;
 	  for (int i = 0; i < preyAnimats.size(); i++) {

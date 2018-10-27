@@ -295,15 +295,26 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 
 				for (Prey p : preyAnimats) {
 					if (!p.isDead) {
-						p_huntVector = glm::normalize(p.position - position);
 
+						p_huntVector = glm::normalize(p.position - position);
 						p_cos_alpha = glm::dot(p_huntVector, huntVector);
+						
+						// je znotraj pahljace
 						if (p_cos_alpha > cos(attackZoneAngle / 2.f)) {
-							p_dist = glm::distance(p.position, position) - AppSettings::preySize - AppSettings::predatorSize;
+
+							// racunamo razdaljo glede na trenutno ribo in ne na najblizjo plenilcu
+							p_dist = glm::distance(preyAnimats[target].position, p.position) - AppSettings::preySize * 2;
+
+							/*p_dist = glm::distance(p.position, position) - AppSettings::preySize - AppSettings::predatorSize;
 							if (p_dist < min_distance) min_distance = p_dist;
 							targetsInAttackZone.push_back(index);
-							targetsInAttackZoneDistance.push_back(p_dist);
+							targetsInAttackZoneDistance.push_back(p_dist);*/
+
+							if (p_dist < 10.0f) {
+								targetsInAttackZone.push_back(index);
+							}
 						}
+
 						// angle between current target direction and animat p
 						/*float p_alpha = std::acos((p_huntVector.x * huntVector.x + p_huntVector.y * huntVector.y));
 						if (p_alpha < 0) p_alpha += 2 * std::_Pi;
@@ -319,8 +330,8 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 				}
 
 				int n = targetsInAttackZone.size();
-				std::vector<int> targetsInAttackZone2;
-				if (n > 0) {
+				//std::vector<int> targetsInAttackZone2;
+				/*if (n > 0) {
 					for (int i = 0; i < n; i++){
 						// izberemo samo animate, ki so znotraj tega polja
 						if ((min_distance + 10.0f) > targetsInAttackZoneDistance[i]) {
@@ -328,12 +339,14 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 						}
 					}
 				}
-				else target = -1;
+				else target = -1;*/
 
-				n = targetsInAttackZone2.size();
+				//n = targetsInAttackZone2.size();
 				if (n > 0) {
-					target = targetsInAttackZone2[std::rand() % (n)];
+					//target = targetsInAttackZone2[std::rand() % (n)];
+					target = targetsInAttackZone[std::rand() % (n)];
 				}
+				else target = -1;
 			}
 		}
 
@@ -413,7 +426,7 @@ void Predator::update(std::vector<Prey>& preyAnimats) {
 	else if (ENERGY == 2) {
 		float pi = 3.14159265358979f;
 		prevAngle_t = angle_t;
-		angle_t = atan(heading.y / heading.x);
+		angle_t = atan2(heading.y, heading.x);
 		float average_speed = (AppSettings::minPredatorVelocity + AppSettings::maxPredatorVelocity) / 2;
 		float energyChange = 0.001f * (1 / average_speed) * (AppSettings::minPredatorVelocity - speed) - 0.002f * (1 / pow(pi, 2)) * pow((angle_t - prevAngle_t), 2);
 
