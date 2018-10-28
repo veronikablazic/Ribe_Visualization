@@ -37,7 +37,7 @@ namespace AppSettings {
 	const int screenWidth = 1280;
 	const int screenHeight = 720;
 
-	const int noOfSteps = 600;
+	const int noOfSteps = 1000;
 
 	const float worldSize = 100;
 	const glm::vec2 worldCentre = glm::vec2((float)screenWidth / 2, (float)screenHeight / 2);
@@ -51,8 +51,12 @@ namespace AppSettings {
 	/*const float maxPreyVelocity = 8.0f;
 	const float minPreyVelocity = 4.0f;*/
 
-	const float maxPreyVelocity = preySize * 8.0f;
-	const float minPreyVelocity = preySize * 4.0f;
+	/*const float maxPreyVelocity = preySize * 8.0f;
+	const float minPreyVelocity = preySize * 4.0f;*/
+
+	const float maxPreyVelocity = preySize * 4.0f;
+	const float cruisingPrey = preySize * 1.4f;
+	const float minPreyVelocity = preySize * 1.0f;
 
 	const float separationSize = 10.0f;
 	const float alignmentSize = 50.0f;
@@ -77,13 +81,15 @@ namespace AppSettings {
 
 	// predator settings
 	const float predatorSize = 3.0f;
-	const int handlingTime = 30;
+	const int handlingTime = 60;
+	const int wanderingTime = 60;
 
 	const float maxPredatorForce = 2.5f;
 	/*const float maxPredatorVelocity = 12.0f;
 	const float minPredatorVelocity = 6.0f;*/
 
-	const float maxPredatorVelocity = predatorSize * 4.0f;
+	const float maxPredatorVelocity = preySize * 5.6f;
+	const float cruisingSpeed = predatorSize * 1.4f; // brainbridge
 	const float minPredatorVelocity = predatorSize * 1.0f;
 
 	const float huntSize = 800.0f;

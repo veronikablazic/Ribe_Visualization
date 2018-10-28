@@ -82,6 +82,8 @@ Predator::Predator(int animatID, float nW, float pW, float cW)
   confusability = 0;
   handling = false;
   handlingTimer = 0;
+  wandering = false;
+  wanderingTimer = 0;
 
   nearestWeight = nW;
   peripheralWeight = pW;
@@ -98,7 +100,7 @@ Predator::Predator(int animatID, float nW, float pW, float cW)
   currentTactic = selectTactic();
 
   bodyLength = AppSettings::predatorSize; //every fish has different size
-  energy = 1;// 1; //normalised fish energy
+  energy = 1;// 1; //normalized fish energy
   regenerationGain = 30.0f / 100000.0f; //regeneration in 30'
 
   sustainedSpeed = AppSettings::predatorSize * 0.75;
@@ -110,6 +112,7 @@ Predator::Predator(int animatID, float nW, float pW, float cW)
   angle_t = 0;
 
   distFromTarget = 1000000;
+  isExhausted = false;
 
   distanceForAcceleration = 152.0f;
   velocityMultiplier = 1.8f;
@@ -221,7 +224,7 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 	confusability = 1.f - 1.f / std::max(noOfConfusors, 1);
 
 	// only update stuff if not handling
-	if (!handling) {
+	if (!handling && !wandering) {
 		// neighbour data
 		glm::vec2 huntVector = glm::vec2(.0f, .0f);
 		currentAttackTime++;
@@ -229,7 +232,7 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 		if (EVOL_PARAMETERS == 1) {
 			if (currentAttackTime > attackPeriod) {
 				target = -1;
-				handling = true;
+				wandering = true;
 				currentAttackTime = 0;
 			}
 
@@ -259,19 +262,23 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 					if (random < 1.f - confusability) {
 						targetPrey.isDead = true;
 						huntCount++;
+						handling = true;
 					}
 					// confused
-					else confusedCount++;
+					else {
+						confusedCount++;
+						wandering = true;
+					}
 				}
 				// non confused, samo ujame ribo
 				else {
 					targetPrey.isDead = true;
 					huntCount++;
+					handling = true;
 				}
 
 				// isce novo tarco, ker se zmede ali je ujel ribo
 				target = -1;
-				handling = true;
 				currentTactic = selectTactic();
 			}
 
@@ -284,7 +291,6 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 			else if (CONFUSABILITY == 2 || CONFUSABILITY == 3) {
 
 				huntVector = glm::normalize(preyAnimats[target].position - position);
-				std::vector<int> targetsInAttackZone;
 				std::vector<float> targetsInAttackZoneDistance;
 				float p_dist = 0.0f;
 
@@ -310,7 +316,7 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 							targetsInAttackZone.push_back(index);
 							targetsInAttackZoneDistance.push_back(p_dist);*/
 
-							if (p_dist < 10.0f) {
+							if (p_dist < AppSettings::confusabilitySize) {
 								targetsInAttackZone.push_back(index);
 							}
 						}
@@ -366,12 +372,37 @@ void Predator::calculate(std::vector<Prey>& preyAnimats) {
 		}
 	}
 	// handling
-	else {
+	else if (handling || wandering) {
+
 		handlingTimer++;
 		if (handlingTimer > AppSettings::handlingTime) {
 			handling = false;
 			handlingTimer = 0;
 		}
+
+		wanderingTimer++;
+		if (wanderingTimer > AppSettings::wanderingTime) {
+			wandering = false;
+			wanderingTimer = 0;
+		}
+
+		nextDecision--;
+		if (nextDecision == 0) {
+
+			glm::vec2 direction = glm::vec2(randomFloat(-100.0f, 100.0f), randomFloat(-100.0f, 100.0f));
+			glm::vec2 unit_temp = glm::normalize(direction);
+			nextDecision = randomInt(10, 30);
+
+			float p_cos_alpha = glm::dot(heading, unit_temp);
+
+			// je znotraj pahljace
+			if (p_cos_alpha > cos(std::_Pi / 2)) {
+				unit = unit_temp;
+			}
+			else unit = -unit_temp;
+		}
+
+		acceleration = unit * AppSettings::maxPredatorForce * 0.2f;
 	}
 }
 
@@ -380,11 +411,17 @@ void Predator::update(std::vector<Prey>& preyAnimats) {
 	// update speed and heading
 	glm::vec2 velocity = getVelocity();
 
+	if (handling) {
+		speed = AppSettings::cruisingSpeed;
+		velocity = getVelocity();
+	}
+	
+
 	// if fish has energy and we're using energy mode
 	if (ENERGY > 0) {
 
 		// added acceleration if fish still has energy
-		if (!((energy > 0) && (!isExhausted))) {
+		if (energy <= 0) {
 			isExhausted = true;
 			speed = AppSettings::minPredatorVelocity; // minimum speed
 			velocity = getVelocity();
@@ -397,6 +434,16 @@ void Predator::update(std::vector<Prey>& preyAnimats) {
 	}
 	
 	velocity += acceleration;
+
+	//handling = true;
+	if (wandering) {
+		//speed = AppSettings::minPredatorVelocity;
+		velocity += glm::normalize(-velocity) * AppSettings::maxPredatorForce;
+	}
+	else if (glm::length(velocity) > AppSettings::cruisingSpeed){
+		float reduction = 1.5f * (1 - energy) * ((glm::length(velocity) - AppSettings::cruisingSpeed) / (AppSettings::maxPredatorVelocity - AppSettings::cruisingSpeed));
+		velocity -= glm::normalize(velocity) * reduction;
+	}
 	
 	speed = .0f;
 	float speed2 = glm::length2(velocity);
@@ -408,7 +455,10 @@ void Predator::update(std::vector<Prey>& preyAnimats) {
 
 	// limit speed 
 	speed = glm::clamp(speed, AppSettings::minPredatorVelocity, AppSettings::maxPredatorVelocity);
-	
+	float a = speed;
+	/*if (handling) speed = glm::clamp(speed, AppSettings::minPredatorVelocity, AppSettings::cruisingSpeed);
+	else if (wandering) speed = glm::clamp(speed, AppSettings::minPredatorVelocity, AppSettings::minPredatorVelocity);
+	*/
 	// if we're using oxygen consimption
 	if (ENERGY == 1) {
 		oxygenConsumption = pow(62.9, (0.21 * (speed / bodyLength))) / 36; //mgO2 / kg h
@@ -428,7 +478,7 @@ void Predator::update(std::vector<Prey>& preyAnimats) {
 		prevAngle_t = angle_t;
 		angle_t = atan2(heading.y, heading.x);
 		float average_speed = (AppSettings::minPredatorVelocity + AppSettings::maxPredatorVelocity) / 2;
-		float energyChange = 0.001f * (1 / average_speed) * (AppSettings::minPredatorVelocity - speed) - 0.002f * (1 / pow(pi, 2)) * pow((angle_t - prevAngle_t), 2);
+		float energyChange = 0.001f * (1 / average_speed) * (AppSettings::cruisingSpeed - speed) - 0.002f * (1 / pow(pi, 2)) * pow((angle_t - prevAngle_t), 2);
 
 		int ncoll = 0;
 		for (int i = 0; i < preyAnimats.size(); i++) {

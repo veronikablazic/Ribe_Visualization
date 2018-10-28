@@ -33,7 +33,9 @@ class Predator
     std::vector<ci::Vec2f> h;
 
     bool handling;
+	bool wandering;
     int handlingTimer;
+	int wanderingTimer;
     int target;
     int huntCount;
     float confusability;
@@ -98,6 +100,10 @@ class Predator
 
 	std::vector<float> predator_speed;
 	//std::ofstream predatorSpeeds;
+
+	int nextDecision = 5;
+	glm::vec2 unit = glm::vec2(0.0f, 0.0f);
+	std::vector<int> targetsInAttackZone;
 
 };
 

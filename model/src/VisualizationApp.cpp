@@ -386,11 +386,17 @@ void VisualizationApp::draw()
     }
 		*/
 #endif
-    if (AppSettings::usePredator)
-    {
-      if (predator.target != -1)
-        prey[predator.target].drawDomainOfDanger();
+    if (AppSettings::usePredator) {
+      if (predator.target != -1) prey[predator.target].drawDomainOfDanger();
+
+	  if (predator.target != -1) {
+		  for (int id : predator.targetsInAttackZone)
+			  prey[predator.target].drawDomainOfDanger();
+	  }
+	  predator.targetsInAttackZone.clear();
     }
+
+
 
     // prey
     for (Prey &p : prey)
@@ -528,12 +534,12 @@ void VisualizationApp::draw()
       lineID += 2.f;
 
 	  s.str("");
-	  s.str("Prey velocity ");
+	  s.str("Predator velocity ");
 	  stringWidth = mFontB->measureString(s.str()).x * 0.5f;
 	  mFontB->drawString(s.str(), Vec2f(12, AppSettings::screenHeight - 12 - lineID*lineHeight),
 		  gl::TextureFont::DrawOptions().scale(0.5f).pixelSnap(false));
 	  s.str("");
-	  s << setprecision(4) << std::sqrt(glm::length2(prey[0].getVelocity()));
+	  s << setprecision(4) << glm::length(predator.getVelocity());
 	  mFont->drawString(s.str(), Vec2f(12 + stringWidth, AppSettings::screenHeight - 12 - lineID*lineHeight),
 		  gl::TextureFont::DrawOptions().scale(0.5f).pixelSnap(false));
 	  lineID++;
